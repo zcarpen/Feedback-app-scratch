@@ -1,15 +1,25 @@
-import {useState} from 'react'
+import {useState, useContext, useEffect} from 'react';
+import FeedbackContext from '../context/FeedbackContext';
 import {v4 as uuidv4} from 'uuid';
 import Card from './shared/Card'
 import Button from './shared/Button'
 import RatingSelect from './RatingSelect'
 
-function FeedbackForm({addFeedback}) {
+function FeedbackForm() {
 
     const [text, setText] = useState('')
     const [rating, setRating] = useState('')
     const [message, setMessage] = useState(true)
     const [btnDisabled, setBtnDisabled] = useState(true)
+    const {addFeedback, feedbackEdit, updateItem} = useContext(FeedbackContext)
+
+    useEffect(() => {
+        if (feedbackEdit.item) {
+            setBtnDisabled(false);
+            setText(feedbackEdit.item.text);
+            setRating(feedbackEdit.item.rating);
+        }
+    }, [feedbackEdit])
 
     const handleTextChange = (e) => {
         if (text === '') {
@@ -28,13 +38,18 @@ function FeedbackForm({addFeedback}) {
     const handleSubmit = (e) => {
         e.preventDefault()
         if (text.trim().length >= 10) {
-            addFeedback({
-                id: uuidv4(),
-                rating: rating,
-                text: text
-            })
+
+            const newFeedback = {
+                text,
+                rating,
+            }
+
+            if (feedbackEdit.edit === true) {
+                updateItem(feedbackEdit.item.id, newFeedback)
+            } else {
+                addFeedback({...newFeedback, id: uuidv4()})
+            }
             setText('');
-            setRating('')
         }
     }
   return (
